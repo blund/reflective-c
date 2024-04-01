@@ -1,12 +1,12 @@
 
 codegen:
-	tcc -I../bl -run reflect.c
+	tcc -Iinclude -run reflect.c main.c
 
 run: codegen
-	tcc -I../bl gen/*.c -run main.c
+	tcc -Iinclude gen/*.c -run main.c
 	@rm gen/*
 
 compile:
-	gcc -I../bl reflect.c && ./a.out
-	gcc -I../bl main.c gen/*.c && ./a.out
+	gcc -Iinclude reflect.c && ./a.out main.c
+	gcc -Iinclude main.c gen/*.c && ./a.out
 	@rm a.out

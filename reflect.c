@@ -120,34 +120,37 @@ int parse_field(char* base, int* index, struct_node* n) {
   n->fields[n->field_index] = fn;
   word_len = parse_word(base, index, &word);
   n->fields[n->field_index]->type = word;
-  //printf("type: '%s'\n", n->fields[n->field_index]->type);
 
   word_len = parse_word(base, index, &word);
   n->fields[n->field_index]->name = word;
-  //printf("name: '%s'\n", n->fields[n->field_index]->name);
 
   n->field_index++;
   return 1;
 }
 
-int main() {
+int main(int argc, char **argv) {
 
-#define MAXBUFLEN 1000000
+  if (argc != 2) {
+      fprintf(stderr, "Bad amount of arguments, expected 1 but got %d\n", argc);
+  }
 
-  char source[MAXBUFLEN + 1];
-  FILE *fp = fopen("main.c", "r");
+  char* file_name = argv[1];
+
+  const int file_max_size = 1024*1024;
+  char file_content[file_max_size];
+  FILE *fp = fopen(file_name, "r");
   if (fp != NULL) {
-    size_t newLen = fread(source, sizeof(char), MAXBUFLEN, fp);
-    if ( ferror( fp ) != 0 ) {
-      fputs("Error reading file", stderr);
+    size_t len = fread(file_content, sizeof(char), file_max_size, fp);
+    if (ferror(fp) != 0) {
+      fprintf(stderr, "Could not read source file '%s'\n", file_name);
     } else {
-      source[newLen++] = '\0'; /* Just to be safe. */
+      file_content[len++] = '\0'; /* Just to be safe. */
     }
 
     fclose(fp);
   }
 
-  char* base = source; //"BL_REFLECT_PRINT(sexy) struct sexy {\nfloat x; \nfloat y; \nfloat z; \n};";
+  char* base = file_content;
 
   int index = 0;
   int word_len = 0;
