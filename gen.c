@@ -12,20 +12,21 @@ https://blog.robertelder.org/building-broken-c-parsers/
 #include <stdlib.h>
 
 typedef struct field_node {
-  char name[32];
-  char type[32];
+  char* name;
+  char* type;
 } field_node;
 
 typedef struct struct_node {
-  char name[32];
-  field_node fields[32];
+  char* name;
+  field_node** fields;
   int field_index;
+  int field_capacity;
 } struct_node;
 
 void print_struct(string_builder* b, struct_node* node) {
   add_to(b, "struct %s {\n", node->name);
   for (int i = 0; i < node->field_index; i++) {
-    add_to(b, "  %s %s;\n", node->fields[i].type, node->fields[i].name);
+    add_to(b, "  %s %s;\n", node->fields[i]->type, node->fields[i]->name);
   }
   add_to(b, "};\n", node->name);
 }
@@ -42,7 +43,7 @@ void make_print_fn(struct_node* n) {
   add_to(b, "  add_to(b, \"struct %s  { \");\n", n->name);
   for (int i = 0; i < n->field_index; i++) {
     add_to(b, "  ");
-    add_to(b, "add_to(b, \"%s: %s \", obj->%s);\n", n->fields[i].name, "%f", n->fields[i].name);
+    add_to(b, "add_to(b, \"%s: %s \", obj->%s);\n", n->fields[i]->name, "%f", n->fields[i]->name);
   }
   add_to(b, "  add_to(b, \"};\");\n");
   add_to(b, "  printf(\"%s\\n\", to_string(b));\n", "%s");
@@ -106,13 +107,19 @@ int parse_field(char* base, int* index, struct_node* n) {
   int word_len = 0;
   char* word;
 
+  if (n->field_index >= n->field_capacity) {
+    n->fields = realloc(n->fields, sizeof(field_node)*n->field_capacity*2);
+  }
+
+  field_node* fn = malloc(sizeof(field_node));
+  n->fields[n->field_index] = fn;
   word_len = parse_word(base, index, &word);
-  strncpy(n->fields[n->field_index].type, word, word_len);
-  //printf("type: '%s'\n", n->fields[n->field_index].type);
+  n->fields[n->field_index]->type = word;
+  //printf("type: '%s'\n", n->fields[n->field_index]->type);
 
   word_len = parse_word(base, index, &word);
-  strncpy(n->fields[n->field_index].name, word, word_len);
-  //printf("name: '%s'\n", n->fields[n->field_index].name);
+  n->fields[n->field_index]->name = word;
+  //printf("name: '%s'\n", n->fields[n->field_index]->name);
 
   n->field_index++;
   return 1;
@@ -125,12 +132,16 @@ int main() {
   int word_len = 0;
   char* word;
 
-  struct_node n = {.field_index = 0};
+  struct_node n = {.field_index = 0, .field_capacity = 4};
+
+  // Allocate array for struct fields
+  n.fields = malloc(sizeof(field_node*) * n.field_capacity);
 
   // Begin building struct
   if (!parse_exact(base, &index, "struct")) return 0;
   word_len = parse_word(base, &index, &word);
-  strncpy(n.name, word, word_len);
+  n.name = word;
+
   if (!parse_exact(base, &index, "{")) return 0;
 
   for (;;) {
