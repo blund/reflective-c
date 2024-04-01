@@ -27,7 +27,7 @@ To see this in action, run the command
     # With tcc
     tcc -Iinclude -run reflect.c main.c
     # Or, if you prefer gcc
-    gcc -Iinclude reflect.c && ./a.out main.c
+    gcc -Iinclude reflect.c -o reflect && ./reflect main.c
 
 If you now look in the `gen` folder, you can see a new file, `vec3.c`. This contains the generated `print_vec3` for the struct.
 
