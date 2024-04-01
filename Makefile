@@ -1,6 +1,7 @@
 
 
 example: reflect
+	@mkdir -p gen
 	./build/reflect examples/vec3.c
 	gcc -Iinclude -Isrc examples/vec3.c gen/*.c -o build/example
 	./build/example
