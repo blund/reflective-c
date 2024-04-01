@@ -42,21 +42,16 @@ int main(int argc, char **argv) {
   parse_state ps = {
     .base = file_content,
     .index = 0,
-    .last_len = 0,
-    .last_word = 0,
+    .len = 0,
   };
-  
-  int index = 0;
-  int word_len = 0;
-  char* word;
 
   for(;;) {
-    int result = parse_exact(base, &index, "BL_REFLECT_PRINT");
+    int result = parse_exact(&ps, "BL_REFLECT_PRINT");
     if (result) break;
-    parse_word(base, &index, NULL);
+    parse_word(&ps);
   }
-  parse_exact(base, &index, "(");
-  parse_word(base, &index, NULL); // Closing paren is implicit, might be bad if we make except for parens
+  parse_exact(&ps, "(");
+  parse_word(&ps); // Closing paren is implicit, might be bad if we make except for parens
 
   struct_node n = {.field_index = 0, .field_capacity = 4};
 
@@ -64,15 +59,15 @@ int main(int argc, char **argv) {
   n.fields = malloc(sizeof(var_node*) * n.field_capacity);
 
   // Begin building struct
-  if (!parse_exact(base, &index, "struct")) return 0;
-  word_len = parse_word(base, &index, &word);
-  n.name = word;
+  if (!parse_exact(&ps, "struct")) return 0;
+  parse_word(&ps);
+  n.name = ps.word;
 
-  if (!parse_exact(base, &index, "{")) return 0;
+  if (!parse_exact(&ps, "{")) return 0;
 
   for (;;) {
-    parse_field(base, &index, &n);
-    if(parse_exact(base, &index, "};")) break;
+    parse_field(&ps, &n);
+    if(parse_exact(&ps, "};")) break;
   }
   make_print_fn(&n);
  

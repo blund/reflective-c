@@ -1,13 +1,16 @@
 
+#include "reflect.h"
+
 typedef struct parse_state {
   char* base;
   int index;
-  int last_len;
-  char* last_word;
+
+  char* word;
+  int len;
 } parse_state;
 
 
-void eat_whitespace(char* base, int* index);
-int parse_exact(char* base, int* index, char* word);
-int parse_word(char* base, int* index, char** result);
-int parse_field(char* base, int* index, struct_node* n);
+void eat_whitespace(parse_state* ps);
+int parse_exact(parse_state* ps, char* word);
+int parse_word(parse_state* ps);
+int parse_field(parse_state* ps, struct_node* n);
