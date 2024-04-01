@@ -21,6 +21,13 @@ This will mark that `reflect` should generate a print function signature that ca
       return 0;
     }
 
+The macro has two purposes:
+1. It generates a function header for the `print_vec3` function, so that your compiler and LSP can know of it before it is generated 
+2. It is used as a trigger for the `reflect` program to generate a function based on the struct following it
+
+This move is inspired by Rich Harris' musings of hijacking the `$:` syntax in JavaScript for Svelte. We can add a step to our build system and expand on our C compiler's capabilities, but without confusing our compiler or LSP with new syntax.
+Goto definition should even work as usual once the file is generated.
+
 
 To see this in action, run the command
 
