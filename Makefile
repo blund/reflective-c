@@ -9,5 +9,5 @@ run: codegen
 
 compile:
 	mkdir -p gen
-	gcc -Iinclude reflect.c -o reflect && ./reflect main.c
+	gcc -g reflect.c parse.c build.c -Iinclude -o reflect && ./reflect main.c
 	gcc -Iinclude main.c gen/*.c && ./a.out
