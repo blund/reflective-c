@@ -5,6 +5,7 @@ codegen:
 
 run: codegen
 	tcc -Iinclude gen/*.c -run main.c
+	@rm gen/* # For ensuring everything works when iterating!
 
 compile:
 	mkdir -p gen
