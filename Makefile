@@ -1,13 +1,13 @@
 
-codegen:
-	mkdir -p gen
-	tcc -Iinclude parse.c build.c -run reflect.c main.c
 
-run: codegen
-	tcc -Iinclude gen/*.c -run main.c
-	@rm gen/* # For ensuring everything works when iterating!
+example: reflect
+	./build/reflect examples/vec3.c
+	gcc -Iinclude -Isrc examples/vec3.c gen/*.c -o build/example
+	./build/example
 
-compile:
-	mkdir -p gen
-	gcc -g reflect.c parse.c build.c -Iinclude -o reflect && ./reflect main.c
-	gcc -Iinclude main.c gen/*.c && ./a.out
+.PHONY: reflect
+reflect:
+	@make -C src
+	@mkdir -p build
+	@mv src/reflect build
+

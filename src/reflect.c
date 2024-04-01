@@ -12,8 +12,8 @@ https://blog.robertelder.org/building-broken-c-parsers/
 #include <stdlib.h>
 
 #include "reflect.h"
-#include "build.h"
 #include "parse.h"
+#include "emit.h"
 
 int main(int argc, char **argv) {
 
