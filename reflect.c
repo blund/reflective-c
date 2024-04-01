@@ -50,7 +50,9 @@ void make_print_fn(struct_node* n) {
   add_to(b, "};\n", n->name);
 
   FILE *fptr;
-  fptr = fopen("gen/vec3.c","w");
+  char file_name[32];
+  sprintf(file_name, "gen/%s.c", n->name);
+  fptr = fopen(file_name,"w");
   fprintf(fptr, "%s\n", to_string(b));
   fclose(fptr);
 
@@ -82,19 +84,22 @@ int parse_exact(char* base, int* index, char* word) {
 
 int parse_word(char* base, int* index, char** result) {
   eat_whitespace(base, index);
-
   int start = *index;
 
  next:
   switch(*(base + *index)) {
   case ' ': break;
   case ';': break;
+  case '\n': break;
   default: {
     (*index)++; goto next;
   }
   }
 
+
   int len = *index - start;
+  if (result == NULL) return len+1;
+
   *result = malloc(len);
 
   strncpy(*result, base + start, len);
@@ -126,11 +131,35 @@ int parse_field(char* base, int* index, struct_node* n) {
 }
 
 int main() {
-  char* base = "struct vec3 {\n float x; \nfloat y; \nfloat z; \n};";
+
+#define MAXBUFLEN 1000000
+
+  char source[MAXBUFLEN + 1];
+  FILE *fp = fopen("main.c", "r");
+  if (fp != NULL) {
+    size_t newLen = fread(source, sizeof(char), MAXBUFLEN, fp);
+    if ( ferror( fp ) != 0 ) {
+      fputs("Error reading file", stderr);
+    } else {
+      source[newLen++] = '\0'; /* Just to be safe. */
+    }
+
+    fclose(fp);
+  }
+
+  char* base = source; //"BL_REFLECT_PRINT(sexy) struct sexy {\nfloat x; \nfloat y; \nfloat z; \n};";
 
   int index = 0;
   int word_len = 0;
   char* word;
+
+  for(;;) {
+    int result = parse_exact(base, &index, "BL_REFLECT_PRINT");
+    if (result) break;
+    parse_word(base, &index, NULL);
+  }
+  parse_exact(base, &index, "(");
+  parse_word(base, &index, NULL); // Closing paren is implicit, might be bad if we make except for parens
 
   struct_node n = {.field_index = 0, .field_capacity = 4};
 

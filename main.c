@@ -1,18 +1,19 @@
 
 #define BL_STRING_BUILDER_IMPLEMENTATION
 #include <bl/string_builder.h>
+#include "reflect.h"
 
-struct vec3 {
-  float x;
-  float y;
-  float z;
+BL_REFLECT_PRINT(epic);
+struct epic {
+  float e;
+  float p;
+  float i;
+  float c;
 };
 
-void print_vec3(struct vec3* obj);
-
 int main() {
-  struct vec3 obj = {1,2,3};
-  print_vec3(&obj);
+  epic obj = {1,2};
+  print_epic(&obj);
 
   return 0;
 }
