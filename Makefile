@@ -1,7 +1,7 @@
 
 codegen:
 	mkdir -p gen
-	tcc -Iinclude -run reflect.c main.c
+	tcc -Iinclude parse.c build.c -run reflect.c main.c
 
 run: codegen
 	tcc -Iinclude gen/*.c -run main.c
