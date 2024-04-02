@@ -6,7 +6,7 @@ The basic idea is to have a non-intrusive, editor-compatible way of generating f
 
 ## Usage
 When defining your struct, prepend the `BL_REFLECT_PRINT` macro with the name of your struct. 
-This will mark that `reflect` should generate a print function signature that can be used by the rest of your program. Here is an example from `main.c`
+This will mark that `reflect` should generate a print function signature that can be used by the rest of your program. Here is an example from `examples/vec3c`
     
     BL_REFLECT_PRINT(vec3); // Note this macro!
     struct vec3 {
