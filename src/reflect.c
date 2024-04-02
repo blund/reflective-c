@@ -45,30 +45,8 @@ int main(int argc, char **argv) {
     .len = 0,
   };
 
-  for(;;) {
-    int result = parse_exact(&ps, "BL_REFLECT_PRINT");
-    if (result) break;
-    parse_word(&ps);
-  }
-  parse_exact(&ps, "(");
-  parse_word(&ps); // Closing paren is implicit, might be bad if we make except for parens
-
   struct_node n = {.field_index = 0, .field_capacity = 4};
-
-  // Allocate array for struct fields
-  n.fields = malloc(sizeof(var_node*) * n.field_capacity);
-
-  // Begin building struct
-  if (!parse_exact(&ps, "struct")) return 0;
-  parse_word(&ps);
-  n.name = ps.word;
-
-  if (!parse_exact(&ps, "{")) return 0;
-
-  for (;;) {
-    parse_field(&ps, &n);
-    if(parse_exact(&ps, "};")) break;
-  }
+  parse_struct(&ps, &n);
   make_print_fn(&n);
  
   return 0;

@@ -72,3 +72,31 @@ int parse_field(parse_state* ps, struct_node* n) {
   n->field_index++;
   return 1;
 }
+
+int parse_struct(parse_state* ps, struct_node* n) {
+  for(;;) {
+    int result = parse_exact(ps, "BL_REFLECT_PRINT");
+    if (result) break;
+    parse_word(ps);
+  }
+  parse_exact(ps, "(");
+  parse_word(ps); // Closing paren is implicit, might be bad if we make except for parens
+
+
+  // Allocate array for struct fields
+  n->fields = malloc(sizeof(var_node*) * n->field_capacity);
+
+  // Begin building struct
+  if (!parse_exact(ps, "struct")) return 0;
+  parse_word(ps);
+  n->name = ps->word;
+
+  if (!parse_exact(ps, "{")) return 0;
+
+  for (;;) {
+    parse_field(ps, n);
+    if(parse_exact(ps, "};")) break;
+  }
+
+  return 1;
+}
