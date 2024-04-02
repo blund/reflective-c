@@ -1,6 +1,5 @@
 
 #include <bl/string_builder.h>
-#include "reflect.h"
 #include "ast.h"
 
 void emit_decl(string_builder* b, AST_Struct* s) {
@@ -9,15 +8,13 @@ void emit_decl(string_builder* b, AST_Struct* s) {
   AST_Children* c = &s->children;
   for (int i = 0; i < c->index; i++) {
     AST_Node *n = c->list[i];
-    switch(n->kind) {
-    case(AST_KIND_STRUCT): {
-      emit_decl(b, (AST_Struct*)n);
-    } break;
-    case(AST_KIND_DECL): {
-      AST_VarDecl* v = (AST_VarDecl*)n;
-      add_to(b, "  %s %s;\n", v->type, v->name);
-    } break;
+
+    if (n->kind != AST_KIND_DECL) {
+      printf("In emit_decl, got bad node %d\n", n->kind);
     }
+
+    AST_VarDecl* v = (AST_VarDecl*)n;
+    add_to(b, "  %s %s;\n", v->type, v->name);
   }
   add_to(b, "};\n", s->name);
 }
@@ -31,13 +28,13 @@ void emit_struct(string_builder* b, AST_Struct* s) {
 
   AST_Children* c = &s->children;
   for (int i = 0; i < c->index; i++) {
-    AST_Node* child = c->list[i];
-    switch(child->kind) {
-    case(AST_KIND_DECL):   emit_field(b, (AST_VarDecl*)child); break;
-    case(AST_KIND_STRUCT): emit_struct(b, (AST_Struct*)child); break;
-    default:
-      puts("Failed building print function!");
+    AST_Node* n = c->list[i];
+
+    if (n->kind != AST_KIND_DECL) {
+      printf("In emit_struct, got bad node %d\n", n->kind);
     }
+
+    emit_field(b, (AST_VarDecl*)n);
   }
   add_to(b, "add_to(b, \"};\");\n");
   add_to(b, "printf(\"%s\\n\", to_string(b));\n", "%s");
