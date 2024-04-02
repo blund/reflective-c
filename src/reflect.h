@@ -3,7 +3,6 @@
 #define REFLECT_H
 #define BL_REFLECT_PRINT(name) typedef struct name name; void print_##name ( struct name* obj )
 
-
 typedef enum node_kind {
   struct_k,
   var_k
@@ -26,5 +25,6 @@ typedef struct struct_node {
   int field_index;
   int field_capacity;
 } struct_node;
+
 #endif
 

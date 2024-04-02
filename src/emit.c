@@ -2,13 +2,13 @@
 #include "reflect.h"
 #include <bl/string_builder.h>
 
-void build_decl(string_builder* b, struct_node* node) {
+void emit_decl(string_builder* b, struct_node* node) {
   add_to(b, "struct %s {\n", node->name);
   for (int i = 0; i < node->field_index; i++) {
     node_t* n = node->fields[i];
     switch(n->kind) {
     case(struct_k): {
-      build_decl(b, (struct_node*)n);
+      emit_decl(b, (struct_node*)n);
     } break;
     case(var_k): {
       var_node* var = (var_node*)n;
@@ -19,17 +19,17 @@ void build_decl(string_builder* b, struct_node* node) {
   add_to(b, "};\n", node->name);
 }
 
-void build_field(string_builder* b, var_node* n) {
+void emit_field(string_builder* b, var_node* n) {
     add_to(b, "add_to(b, \"%s: %s \", obj->%s);\n", n->name, "%f", n->name);
 }
 
-void build_struct(string_builder* b, struct_node* n) {
+void emit_struct(string_builder* b, struct_node* n) {
   add_to(b, "add_to(b, \"struct %s  { \");\n", n->name);
   for (int i = 0; i < n->field_index; i++) {
     node_t* child = n->fields[i];
     switch(child->kind) {
-    case(var_k): build_field(b, (var_node*)child); break;
-    case(struct_k): build_struct(b, (struct_node*)child); break;
+    case(var_k): emit_field(b, (var_node*)child); break;
+    case(struct_k): emit_struct(b, (struct_node*)child); break;
     default:
       puts("Failed building print function!");
     }
@@ -39,14 +39,14 @@ void build_struct(string_builder* b, struct_node* n) {
   add_to(b, "};\n", n->name);
 }
 
-void make_print_fn(struct_node* n) {
+void emit_print_fn(struct_node* n) {
   string_builder* b = new_builder(256);
 
   add_to(b, "#include <bl/string_builder.h>\n");
-  build_decl(b, n);
+  emit_decl(b, n);
   add_to(b, "void print_%s(struct %s* obj) {\n", n->name, n->name);
   add_to(b, "string_builder* b = new_builder(128);\n");
-  build_struct(b, n);
+  emit_struct(b, n);
   
   FILE *fptr;
   char file_name[32];

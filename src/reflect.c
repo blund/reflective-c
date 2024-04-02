@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 
   struct_node n = {.field_index = 0, .field_capacity = 4};
   parse_struct(&ps, &n);
-  make_print_fn(&n);
+  emit_print_fn(&n);
 
   return 0;
 }
