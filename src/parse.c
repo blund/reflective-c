@@ -61,6 +61,8 @@ int parse_word(parse_state* ps) {
   case ';': break;
   case '}': break;
   case '{': break;
+  case '(': break;
+  case ')': break;
   case '\n': break;
   default: {
     ps->index++; goto next;
