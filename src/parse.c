@@ -3,19 +3,42 @@
 #include <malloc.h>
 
 #include "reflect.h"
+#include "ast.h"
 #include "parse.h"
 
 void eat_whitespace(parse_state* ps) {
  next:
   switch(*(ps->base + ps->index)) {
   case ' ': goto iterate;
-  case ';': goto iterate;
   case '\n': goto iterate;
   case '\t': goto iterate;
   default: return;
   }
  iterate:
   ps->index++; goto next;
+}
+
+int parse_oneof(parse_state* ps, char* matches) {
+  eat_whitespace(ps);
+
+  int len = strlen(matches);
+  char* c = ps->base + ps->index;
+  for (int i = 0; i < len; i++) {
+    if (*c == matches[i]) {
+      ps->index++;
+    }
+  }
+  return 0;
+}
+
+int parse_maybe(parse_state* ps, char* word) {
+  eat_whitespace(ps);
+  int len = strlen(word);
+  if (!strncmp(ps->base+ps->index, word, len)) {
+    ps->index += len;
+    return 1;
+  }
+  return 1;
 }
 
 int parse_exact(parse_state* ps, char* word) {
@@ -36,6 +59,8 @@ int parse_word(parse_state* ps) {
   switch(*(ps->base + ps->index)) {
   case ' ': break;
   case ';': break;
+  case '}': break;
+  case '{': break;
   case '\n': break;
   default: {
     ps->index++; goto next;
@@ -48,55 +73,59 @@ int parse_word(parse_state* ps) {
   strncpy(ps->word, ps->base + start, len);
   ps->word[len] = 0;
 
-  return len+1;
+  return len;
 }
 
-int parse_field(parse_state* ps, struct_node* n) {
-  int word_len = 0;
-  char* word;
+int parse_field(parse_state* ps, AST_Children* c) {
+  int original_index = ps->index;
+  int word_len;
 
-  if (n->field_index >= n->field_capacity) {
-    n->fields = realloc(n->fields, sizeof(var_node)*n->field_capacity*2);
+  word_len = parse_word(ps);
+  char* type = ps->word;
+  if (!word_len) return 0;
+
+  word_len = parse_word(ps);
+  char* name = ps->word;
+  if (!word_len) return 0;
+
+  int result = parse_exact(ps, ";");
+  if (!result) {
+    ps->index = original_index;
+    return 0;
   }
 
-  var_node* fn = malloc(sizeof(var_node));
-
-  n->fields[n->field_index] = (node_t*)fn;
-  word_len = parse_word(ps);
-  fn->type = ps->word;
-
-  word_len = parse_word(ps);
-  fn->name = ps->word;
-  fn->kind = var_k;
-
-  n->field_index++;
+  AST_VarDecl* decl = malloc(sizeof(AST_VarDecl));
+  decl->node.kind = AST_KIND_DECL;
+  decl->name = name;
+  decl->type = type;
+  add_child(c, (AST_Node*)decl);
   return 1;
 }
 
-int parse_struct(parse_state* ps, struct_node* n) {
-  for(;;) {
-    int result = parse_exact(ps, "BL_REFLECT_PRINT");
-    if (result) break;
-    parse_word(ps);
-  }
-  parse_exact(ps, "(");
-  parse_word(ps); // Closing paren is implicit, might be bad if we make except for parens
+int parse_struct(parse_state* ps, AST_Struct* s) {
+  int start_index = ps->index;
+  int r = 1;
 
+  // Optionally parse typedef
+  int td = parse_exact(ps, "typedef");
+  r &= parse_exact(ps, "struct");
 
-  // Allocate array for struct fields
-  n->fields = malloc(sizeof(var_node*) * n->field_capacity);
-
-  // Begin building struct
-  if (!parse_exact(ps, "struct")) return 0;
   parse_word(ps);
-  n->name = ps->word;
-
-  if (!parse_exact(ps, "{")) return 0;
+  s->name = ps->word;
+  r &= parse_exact(ps, "{");
 
   for (;;) {
-    parse_field(ps, n);
-    if(parse_exact(ps, "};")) break;
+    if(!parse_field(ps, &s->children)) break;
   }
 
-  return 1;
+  r &= parse_exact(ps, "}");
+  int td_name = parse_word(ps);
+  r &= parse_exact(ps, ";");
+
+  if (td_name && !td ||!td_name && td) r = 0;
+  if (!r) ps->index = start_index;
+
+  s->node.kind = AST_KIND_STRUCT;
+  return r;
 }
+

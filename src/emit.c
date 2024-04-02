@@ -1,45 +1,50 @@
 
-#include "reflect.h"
 #include <bl/string_builder.h>
+#include "reflect.h"
+#include "ast.h"
 
-void emit_decl(string_builder* b, struct_node* node) {
-  add_to(b, "struct %s {\n", node->name);
-  for (int i = 0; i < node->field_index; i++) {
-    node_t* n = node->fields[i];
+void emit_decl(string_builder* b, AST_Struct* s) {
+  add_to(b, "struct %s {\n", s->name);
+
+  AST_Children* c = &s->children;
+  for (int i = 0; i < c->index; i++) {
+    AST_Node *n = c->list[i];
     switch(n->kind) {
-    case(struct_k): {
-      emit_decl(b, (struct_node*)n);
+    case(AST_KIND_STRUCT): {
+      emit_decl(b, (AST_Struct*)n);
     } break;
-    case(var_k): {
-      var_node* var = (var_node*)n;
-      add_to(b, "  %s %s;\n", var->type, var->name);
+    case(AST_KIND_DECL): {
+      AST_VarDecl* v = (AST_VarDecl*)n;
+      add_to(b, "  %s %s;\n", v->type, v->name);
     } break;
     }
   }
-  add_to(b, "};\n", node->name);
+  add_to(b, "};\n", s->name);
 }
 
-void emit_field(string_builder* b, var_node* n) {
-    add_to(b, "add_to(b, \"%s: %s \", obj->%s);\n", n->name, "%f", n->name);
+void emit_field(string_builder* b, AST_VarDecl* v) {
+    add_to(b, "add_to(b, \"%s: %s \", obj->%s);\n", v->name, "%f", v->name);
 }
 
-void emit_struct(string_builder* b, struct_node* n) {
-  add_to(b, "add_to(b, \"struct %s  { \");\n", n->name);
-  for (int i = 0; i < n->field_index; i++) {
-    node_t* child = n->fields[i];
+void emit_struct(string_builder* b, AST_Struct* s) {
+  add_to(b, "add_to(b, \"struct %s  { \");\n", s->name);
+
+  AST_Children* c = &s->children;
+  for (int i = 0; i < c->index; i++) {
+    AST_Node* child = c->list[i];
     switch(child->kind) {
-    case(var_k): emit_field(b, (var_node*)child); break;
-    case(struct_k): emit_struct(b, (struct_node*)child); break;
+    case(AST_KIND_DECL):   emit_field(b, (AST_VarDecl*)child); break;
+    case(AST_KIND_STRUCT): emit_struct(b, (AST_Struct*)child); break;
     default:
       puts("Failed building print function!");
     }
   }
   add_to(b, "add_to(b, \"};\");\n");
   add_to(b, "printf(\"%s\\n\", to_string(b));\n", "%s");
-  add_to(b, "};\n", n->name);
+  add_to(b, "};\n", s->name);
 }
 
-void emit_print_fn(struct_node* n) {
+void emit_print_fn(AST_Struct* n) {
   string_builder* b = new_builder(256);
 
   add_to(b, "#include <bl/string_builder.h>\n");

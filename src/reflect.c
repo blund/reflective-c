@@ -9,7 +9,7 @@ https://blog.robertelder.org/building-broken-c-parsers/
 #define BL_IO_IMPLEMENTATION
 #include <bl/io.h>
 
-#include "reflect.h"
+#include "ast.h"
 #include "parse.h"
 #include "emit.h"
 
@@ -17,10 +17,10 @@ int main(int argc, char **argv) {
 
   if (argc != 2) {
     fprintf(stderr, "Bad amount of arguments, expected 1 but got %d\n", argc);
+    return 0;
   }
 
   char* file_name = argv[1];
-
   char* buffer = read_entire_file(file_name);
 
   parse_state ps = {
@@ -29,9 +29,20 @@ int main(int argc, char **argv) {
     .len = 0,
   };
 
-  struct_node n = {.field_index = 0, .field_capacity = 4};
-  parse_struct(&ps, &n);
-  emit_print_fn(&n);
+  AST_Struct s;
+  init_children(&s.children);
+  for(;;) {
+    int result = parse_exact(&ps, "BL_REFLECT_PRINT");
+    if (result) break;
+    parse_word(&ps);
+  }
+
+  parse_exact(&ps, "(");
+  parse_word(&ps); // Closing paren is implicit, might be bad if we make except for parens
+  parse_exact(&ps, ";");
+
+  parse_struct(&ps, &s);
+  emit_print_fn(&s);
 
   return 0;
 }
