@@ -41,7 +41,12 @@ int main(int argc, char **argv) {
   parse_word(&ps); // Closing paren is implicit, might be bad if we make except for parens
   parse_exact(&ps, ";");
 
-  parse_struct(&ps, &s);
+  int success = parse_struct(&ps, &s);
+  if (!success) {
+    puts("Failed to parse struct");
+    return 0;
+  }
+
   emit_print_fn(&s);
 
   return 0;
