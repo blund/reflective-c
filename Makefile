@@ -1,10 +1,12 @@
 
 
-example: reflect
-	@mkdir -p gen
-	./build/reflect examples/vec3.c
+example: codegen
 	gcc -Iinclude -Isrc examples/vec3.c gen/*.c -o build/example
 	./build/example
+
+codegen: reflect
+	@mkdir -p gen
+	./build/reflect examples/vec3.c
 
 .PHONY: reflect
 reflect:

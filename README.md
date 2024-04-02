@@ -31,10 +31,7 @@ Goto definition should even work as usual once the file is generated.
 
 To see this in action, run the command
 
-    # With tcc
-    tcc -Iinclude -run reflect.c main.c
-    # Or, if you prefer gcc
-    gcc -Iinclude reflect.c -o reflect && ./reflect main.c
+    make codegen
 
 If you now look in the `gen` folder, you can see a new file, `vec3.c`. This contains the generated `print_vec3` for the struct.
 
@@ -57,10 +54,7 @@ If you now look in the `gen` folder, you can see a new file, `vec3.c`. This cont
 
 This file be linked to your normal project project
 
-    # With tcc
-    tcc -Iinclude gen/*.c -run main.c
-    # Or, if you prefer gcc
-    gcc -Iinclude main.c gen/*.c && ./a.out
+    make example
 
 When you compile and run `main.c`, you should see the following printed to your console
 
