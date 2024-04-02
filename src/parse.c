@@ -99,7 +99,7 @@ int parse_field(parse_state* ps, AST_Children* c) {
   AST_VarDecl* decl = malloc(sizeof(AST_VarDecl));
   decl->node.kind = AST_KIND_DECL;
   decl->name = name;
-  decl->type = type;
+  decl->type = string_to_type(type);
   add_child(c, (AST_Node*)decl);
   return 1;
 }

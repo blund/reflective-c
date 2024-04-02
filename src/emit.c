@@ -14,13 +14,13 @@ void emit_decl(string_builder* b, AST_Struct* s) {
     }
 
     AST_VarDecl* v = (AST_VarDecl*)n;
-    add_to(b, "  %s %s;\n", v->type, v->name);
+    add_to(b, "  %s %s;\n", type_to_string(v->type), v->name);
   }
   add_to(b, "};\n", s->name);
 }
 
 void emit_field(string_builder* b, AST_VarDecl* v) {
-    add_to(b, "add_to(b, \"%s: %s \", obj->%s);\n", v->name, "%f", v->name);
+  add_to(b, "add_to(b, \"%s: %s, \", obj->%s);\n", v->name, type_to_format(v->type), v->name);
 }
 
 void emit_struct(string_builder* b, AST_Struct* s) {
