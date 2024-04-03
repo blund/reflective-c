@@ -66,7 +66,13 @@ When compiling the file `examples/vec3.c`, all the files in the `gen` folder are
 
 ## Shortcomings and further work
 This project is very much an experiment in its early beginnings!
-Expanding the parser to comply with more of C's syntax will allow more use cases. Some ideas include
+So far, there are a few limitations:
+* Only structs can be read by the parser
+* Only basic C types are supported (int, float, char, char*). Other types will simply lead to errors
+* Every struct tagged with `BL_REFLECT_PRINT` requires its children to be either the C primitives above or also tagged with `BL_REFLECT_PRINT`.
+
+Expanding the parser to comply with more of C's syntax will allow more use cases. 
+Some interesting ideas to explore further are:
 * General serialization generators (json, csv)
 * Creating initialization functions for structs
 * Deriving equality checks for structs
