@@ -67,8 +67,6 @@ void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
     AST_VarDecl* v = (AST_VarDecl*)n;
     // v is of a c standard type
     char* f = string_to_format(v->type);
-    puts("???");
-    printf("%s %s\n", f, v->type);
     if (string_to_format(v->type) != NULL) {
       emit_field(b, (AST_VarDecl*)n, NULL);
     } else {

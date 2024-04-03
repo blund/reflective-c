@@ -55,20 +55,14 @@ int main(int argc, char **argv) {
     parse_exact(&ps, ")");
     parse_exact(&ps, ";");
 
-    printf("PARSING %s\n", ps.word);
-
-
     int success = parse_struct(&ps, s);
     if (!success) {
       return 0;
     }
 
     shput(ctx.struct_map, s->name, s);
-    printf("PUTTING %s\n", s->name);
 
     emit_print_fn(s, &ctx);
-
-    puts("BAAAM");
   }
  end_parse:
 
