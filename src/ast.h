@@ -19,9 +19,7 @@ typedef enum {
 } AST_TYPE;
 #undef KV
 
-AST_TYPE string_to_type(char* s);
-char* type_to_string(AST_TYPE t);
-char* type_to_format(AST_TYPE t);
+char* string_to_format(char* t);
 
 typedef struct kv_a {
   char key[8];
@@ -29,8 +27,7 @@ typedef struct kv_a {
 } kv_a;
 
 typedef struct kv_b {
-  AST_TYPE key;
-  char string[8];
+  char key[8];
   char format[8];
 } kv_b;
 
@@ -47,7 +44,7 @@ typedef struct AST_Children {
 typedef struct AST_VarDecl {
   AST_Node node;
   char* name;
-  AST_TYPE type;
+  char* type;
 } AST_VarDecl;
 
 typedef struct AST_Struct {

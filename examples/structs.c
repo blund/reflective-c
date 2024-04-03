@@ -14,6 +14,7 @@ BL_REFLECT_PRINT(person);
 struct person {
   char* name;
   int age;
+  vec3 speed;
 };
 
 
@@ -21,7 +22,7 @@ int main() {
   vec3 obj = {1.0, 2.0, 3.0};
   print_vec3(&obj);
 
-  person person = {"Børge", 27};
+  person person = {"Børge", 27, {1.0, 2.0, 3.0}};
   print_person(&person);
   return 0;
 }
