@@ -2,7 +2,6 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "reflect.h"
 #include "ast.h"
 #include "parse.h"
 
@@ -77,6 +76,32 @@ int parse_word(parse_state* ps) {
 
   return len;
 }
+
+int parse_token(parse_state* ps) {
+  eat_whitespace(ps);
+  int start = ps->index;
+
+ next:
+  switch(*(ps->base + ps->index)) {
+  case ' ':
+  case ';':
+  case '}':
+  case '{':
+  case '(':
+  case ')':
+  case '\n': {
+    // @NOTE - we do not pass on the token
+    ps->index++; return 1;
+  } break;
+  default: {
+    ps->index++; goto next;
+  }
+  }
+
+  return ps->index - start;
+}
+
+
 
 int parse_field(parse_state* ps, AST_Children* c) {
   int original_index = ps->index;

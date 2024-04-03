@@ -1,15 +1,12 @@
 
 
 example: codegen
-	gcc -Iinclude -Isrc examples/vec3.c gen/*.c -o build/vec3
-	gcc -Iinclude -Isrc examples/person.c gen/*.c -o build/person
-	./build/vec3
-	./build/person
+	gcc -Iinclude -Isrc examples/structs.c gen/*.c -o build/structs
+	./build/structs
 
 codegen: reflect
 	@mkdir -p gen
-	./build/reflect examples/vec3.c
-	./build/reflect examples/person.c
+	./build/reflect examples/structs.c
 
 .PHONY: reflect
 reflect:
