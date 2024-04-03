@@ -1,12 +1,12 @@
 # Reflective-C
-`reflective-C` is an experiment in C reflective programming and metaprogramming.
-The current goal of the project is to generate `print_*` functions for arbitrary `structs`.
+Reflective-C is an experiment in C reflective programming and metaprogramming.
+The current goal of the project is to generate print functions for arbitrary C structs, akin to `deriving Show` in Haskell programs.
 
-The basic idea is to have a non-intrusive, editor-compatible way of generating functions. This way, `reflective-c` can be a library on top of C as opposed to a whole new language.
+The basic idea is to have a non-intrusive, editor-compatible way of doing metaprogramming in C. `reflective-c` is a library on top of C as opposed to a whole new language.
 
 ## Usage
 When defining your struct, prepend the `BL_REFLECT_PRINT` macro with the name of your struct. 
-This will mark that `reflect` should generate a print function signature that can be used by the rest of your program. Here is an example from `examples/vec3c`
+This will mark that `reflect` should generate a print function signature that can be used by the rest of your program. Here is an example from `examples/structs.`
     
     BL_REFLECT_PRINT(vec3); // Note this macro!
     struct vec3 {
@@ -65,10 +65,9 @@ When compiling the file `examples/vec3.c`, all the files in the `gen` folder are
     gcc -Iinclude -Isrc examples/vec3.c gen/*.c -o build/example
 
 ## Shortcomings and further work
-This project is very much an experiment in its early beginnings.
-So far, the C parser and code emitter only work for structs using some basic C types.
+This project is very much an experiment in its early beginnings!
 Expanding the parser to comply with more of C's syntax will allow more use cases. Some ideas include
 * General serialization generators (json, csv)
-* Creating initializations functions for structs
+* Creating initialization functions for structs
 * Deriving equality checks for structs
 * Creating a utility for safe pattern matching
