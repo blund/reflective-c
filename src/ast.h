@@ -2,6 +2,10 @@
 #define AST_H
 
 typedef enum {
+  AST_NODE_PTR = 0x1,
+} AST_NODE_FLAGS;
+
+typedef enum {
   AST_KIND_DECL,
   AST_KIND_STRUCT,
 } AST_NODE_KIND;
@@ -33,6 +37,7 @@ typedef struct kv_b {
 
 typedef struct AST_Node {
   AST_NODE_KIND kind;
+  int flags;
 } AST_Node;
 
 typedef struct AST_Children {

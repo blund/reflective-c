@@ -22,7 +22,11 @@ void emit_decl(string_builder* b, Context* ctx, AST_Struct* s) {
 
     AST_VarDecl* v = (AST_VarDecl*)n;
     char* format_string = string_to_format(v->type);
-    add_to(b, "  %s %s;\n", v->type, v->name);
+    if (v->node.flags & AST_NODE_PTR) {
+      add_to(b, "  %s* %s;\n", v->type, v->name);
+    } else {
+	add_to(b, "  %s %s;\n", v->type, v->name);
+     }
   }
   add_to(b, "} %s;\n", s->name);
 }
@@ -39,7 +43,11 @@ void emit_sub_decl(string_builder* b, AST_Struct* s, char* name) {
     }
 
     AST_VarDecl* v = (AST_VarDecl*)n;
-    add_to(b, "  %s %s;\n", v->type, v->name);
+    if (v->node.flags & AST_NODE_PTR) {
+      add_to(b, "  %s* %s;\n", v->type, v->name);
+    } else {
+      add_to(b, "  %s %s;\n", v->type, v->name);
+    }
   }
   add_to(b, "};\n", s->name);
 }
@@ -48,7 +56,11 @@ void emit_field(string_builder* b, AST_VarDecl* v, char* name) {
   add_to(b, "add_to(b, \"%s: %s, \", ", v->name, string_to_format(v->type));
   add_to(b, "obj->");
   if (name) {
-    add_to(b, "%s.", name);
+    if (v->node.flags & AST_NODE_PTR) {
+      add_to(b, "%s->", name);
+    } else {
+      add_to(b, "%s.", name);
+    }
   }
   add_to(b, "%s);\n", v->name);
 }
@@ -71,6 +83,7 @@ void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
       emit_field(b, (AST_VarDecl*)n, NULL);
     } else {
       AST_Struct* sub = shget(ctx->struct_map, v->type);
+      sub->node.flags = v->node.flags; // Inherit flags (to know if it is a ptr)
       if (!sub) {
 	puts("Struct %s was not defined\n");
 	return;
@@ -95,9 +108,10 @@ void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, char* name)
     }
 
     AST_VarDecl* v = (AST_VarDecl*)n;
+    v->node.flags = s->node.flags; // Inherit flags (to know if it is a ptr)
     // v is of a c standard type
     if (string_to_format(v->type) != NULL) {
-      emit_field(b, (AST_VarDecl*)n, name);
+      emit_field(b, v, name);
     } else {
       AST_Struct* sub = shget(ctx->struct_map, v->type);
       if (!sub) {
@@ -107,7 +121,7 @@ void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, char* name)
       emit_struct(b, ctx, sub);
     }
   }
-  add_to(b, "add_to(b, \"} \");\n");
+  add_to(b, "add_to(b, \"}, \");\n");
 }
 
 

@@ -62,6 +62,7 @@ int parse_word(parse_state* ps) {
   case '{': break;
   case '(': break;
   case ')': break;
+  case '*': break;
   case '\n': break;
   default: {
     ps->index++; goto next;
@@ -89,6 +90,7 @@ int parse_token(parse_state* ps) {
   case '{':
   case '(':
   case ')':
+  case '*':
   case '\n': {
     // @NOTE - we do not pass on the token
     ps->index++; return 1;
@@ -107,12 +109,27 @@ int parse_field(parse_state* ps, AST_Children* c) {
   int original_index = ps->index;
   int word_len;
 
-  word_len = parse_word(ps);
-  char* type = ps->word;
-  if (!word_len) return 0;
+  char* type;
+  char* name;
+
+  // We make a special case for char* since it is annoying
+  // to make an exception for the only primitive type that has a *
+  // in it
+  int string = parse_exact(ps, "char*");
+
+  if (string) {
+    word_len = 5;
+    type = "char*";
+  } else {
+    word_len = parse_word(ps);
+    type = ps->word;
+    if (!word_len) return 0;
+  }
+
+  int ptr = parse_exact(ps, "*");
 
   word_len = parse_word(ps);
-  char* name = ps->word;
+  name = ps->word;
   if (!word_len) return 0;
 
   int result = parse_exact(ps, ";");
@@ -123,8 +140,17 @@ int parse_field(parse_state* ps, AST_Children* c) {
 
   AST_VarDecl* decl = malloc(sizeof(AST_VarDecl));
   decl->node.kind = AST_KIND_DECL;
+  decl->node.flags = 0;
   decl->name = name;
   decl->type = type;
+
+
+  // Mark the node as a pointer if we found a '*' above!
+  // @NOTE that char* is handled separately above
+  // This is because it is easier to lump it in with the
+  // other C types where we just emit a format string
+  if (ptr) decl->node.flags |= AST_NODE_PTR;
+
   add_child(c, (AST_Node*)decl);
   return 1;
 }
