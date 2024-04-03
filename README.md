@@ -66,7 +66,7 @@ When compiling the file `examples/vec3.c`, all the files in the `gen` folder are
 
 ## Shortcomings and further work
 This project is very much an experiment in its early beginnings.
-So far, the C parser and code emitter only work with flat struct definitions and floats.
+So far, the C parser and code emitter only work for structs using some basic C types.
 Expanding the parser to comply with more of C's syntax will allow more use cases. Some ideas include
 * General serialization generators (json, csv)
 * Creating initializations functions for structs
