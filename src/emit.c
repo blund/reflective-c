@@ -6,8 +6,14 @@
 #include "ast.h"
 #include "context.h"
 
+
+typedef struct refs {
+  AST_VarDecl* chain[32];
+  int count;
+} refs;
+
 void emit_sub_decl(string_builder* b, AST_Struct* s, char* name);
-void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, char* name);
+void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, refs ref);
 
 void emit_decl(string_builder* b, Context* ctx, AST_Struct* s) {
   add_to(b, "typedef struct %s {\n", s->name);
@@ -25,8 +31,8 @@ void emit_decl(string_builder* b, Context* ctx, AST_Struct* s) {
     if (v->node.flags & AST_NODE_PTR) {
       add_to(b, "  %s* %s;\n", v->type, v->name);
     } else {
-	add_to(b, "  %s %s;\n", v->type, v->name);
-     }
+      add_to(b, "  %s %s;\n", v->type, v->name);
+    }
   }
   add_to(b, "} %s;\n", s->name);
 }
@@ -52,24 +58,32 @@ void emit_sub_decl(string_builder* b, AST_Struct* s, char* name) {
   add_to(b, "};\n", s->name);
 }
 
-void emit_field(string_builder* b, AST_VarDecl* v, char* name) {
+void emit_field(string_builder* b, AST_VarDecl* v, refs ref) {
   add_to(b, "add_to(b, \"%s: %s, \", ", v->name, string_to_format(v->type));
   add_to(b, "obj->");
-  if (name) {
-    if (v->node.flags & AST_NODE_PTR) {
-      add_to(b, "%s->", name);
+
+  for (int i = 0; i < ref.count; i++) {
+    AST_VarDecl* v2 = ref.chain[i];
+
+    if (v2->node.flags & AST_NODE_PTR) {
+      add_to(b, "%s->", v2->name);
     } else {
-      add_to(b, "%s.", name);
+      add_to(b, "%s.", v2->name);
     }
   }
   add_to(b, "%s);\n", v->name);
 }
 
 void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
+
+  // Refs are used to keep track of names in nested accesses in structs
+  refs ref = {{},0};
+
   add_to(b, "add_to(b, \"struct %s  { \");\n", s->name);
 
   AST_Children* c = &s->children;
   for (int i = 0; i < c->index; i++) {
+    ref.count = 0;
     AST_Node* n = c->list[i];
 
     if (n->kind != AST_KIND_DECL) {
@@ -80,7 +94,7 @@ void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
     // v is of a c standard type
     char* f = string_to_format(v->type);
     if (string_to_format(v->type) != NULL) {
-      emit_field(b, (AST_VarDecl*)n, NULL);
+      emit_field(b, (AST_VarDecl*)n, ref);
     } else {
       AST_Struct* sub = shget(ctx->struct_map, v->type);
       sub->node.flags = v->node.flags; // Inherit flags (to know if it is a ptr)
@@ -88,7 +102,9 @@ void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
 	puts("Struct %s was not defined\n");
 	return;
       }
-      emit_sub_struct(b, ctx, sub, v->name);
+      ref.chain[ref.count] = v;
+      ref.count++;
+      emit_sub_struct(b, ctx, sub, ref);
     }
   }
   add_to(b, "add_to(b, \"};\");\n");
@@ -96,11 +112,14 @@ void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
   add_to(b, "};\n", s->name);
 }
 
-void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, char* name) {
-  add_to(b, "add_to(b, \"%s:  { \");\n", name);
+void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, refs ref) {
+  add_to(b, "add_to(b, \"%s:  { \");\n", ref.chain[ref.count-1]->name); // I don't know why this is -1
+
+  int local_ref_count = ref.count;
 
   AST_Children* c = &s->children;
   for (int i = 0; i < c->index; i++) {
+    ref.count = local_ref_count;
     AST_Node* n = c->list[i];
 
     if (n->kind != AST_KIND_DECL) {
@@ -108,31 +127,25 @@ void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, char* name)
     }
 
     AST_VarDecl* v = (AST_VarDecl*)n;
-    v->node.flags = s->node.flags; // Inherit flags (to know if it is a ptr)
     // v is of a c standard type
     if (string_to_format(v->type) != NULL) {
-      emit_field(b, v, name);
+      emit_field(b, v, ref);
     } else {
       AST_Struct* sub = shget(ctx->struct_map, v->type);
       if (!sub) {
 	puts("Struct %s was not defined\n");
 	return;
       }
-      emit_struct(b, ctx, sub);
+      ref.chain[ref.count] = v;
+      ref.count++;
+      emit_sub_struct(b, ctx, sub, ref);
     }
   }
   add_to(b, "add_to(b, \"}, \");\n");
 }
 
 
-void emit_print_fn(AST_Struct* n, Context* ctx) {
-  string_builder* b = new_builder(256);
-
-  // First, we need to find any dependencies
-  // @TODO - This has to be recursive
-  AST_Struct* dependencies[32];
-  int index = 0;
-
+void build_dependency_line(Context* ctx, AST_Struct** dependencies, AST_Struct* n, int* index) {
   AST_Children* c = &n->children;
   for (int i = 0; i < c->index; i++) {
     AST_VarDecl* v = (AST_VarDecl*)c->list[i];
@@ -142,16 +155,30 @@ void emit_print_fn(AST_Struct* n, Context* ctx) {
 	printf("Error in building dependencies for '%s', '%s' was not defined\n", n->name, s->name);
 	return;
       }
-      dependencies[index++] = s;
+      build_dependency_line(ctx, dependencies, s, index);
+      dependencies[*index] = s;
+      *index += 1;
     }
   }
+  return;
+}
+
+void emit_print_fn(AST_Struct* n, Context* ctx) {
+  string_builder* b = new_builder(256);
+
+  // First, we need to find any dependencies
+  // @TODO - This has to be recursive
+  AST_Struct* dependencies[32] = {};
+  int dep_count = 0;
+
+  build_dependency_line(ctx, dependencies, n, &dep_count);
+
   // Emit dependencies
   add_to(b, "#include <bl/string_builder.h>\n");
-  for (int i = 0; i < index; i++) {
+  for (int i = 0; i < dep_count; i++) {
+    if (i == dep_count) break; // Did I go insane? I thought the loop was supposed to do this...
     emit_decl(b, ctx, dependencies[i]);
   }
-
-
   
   emit_decl(b, ctx, n);
   add_to(b, "void print_%s(struct %s* obj) {\n", n->name, n->name);

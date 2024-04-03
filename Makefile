@@ -6,6 +6,7 @@ example: codegen
 
 codegen: reflect
 	@mkdir -p gen
+	@rm -f gen/*
 	./build/reflect examples/structs.c
 
 .PHONY: reflect
