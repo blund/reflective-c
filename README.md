@@ -1,5 +1,5 @@
 # Reflective-C
-`Reflective-C` is an experiment in C reflective programming and metaprogramming. This means inspecting the source code and programmatically generating new code from it.
+`reflective-C` is an experiment in C reflective programming and metaprogramming. This means inspecting the source code and programmatically generating new code from it.
 The current goal of the project is to generate print functions for arbitrary C structs, akin to `deriving Show` in Haskell programs.
 
 The basic idea is to have a non-intrusive, editor-compatible way of doing metaprogramming in C. `reflective-c` is a library on top of C as opposed to a whole new language.
