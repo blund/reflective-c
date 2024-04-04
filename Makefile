@@ -1,16 +1,27 @@
 
+generics: codegen-generics
+	gcc -Iinclude -Isrc examples/generics.c gen/generics/*.c -o build/generics
+	./build/generics
 
-example: codegen
-	gcc -Iinclude -Isrc examples/structs.c gen/*.c -o build/structs
+
+structs: codegen-structs
+	gcc -Iinclude -Isrc examples/structs.c gen/structs/*.c -o build/structs
 	./build/structs
 
-codegen: reflect
+codegen-generics: reflect clear_gen
+	@mkdir -p gen/generics
+	./build/reflect -o ./gen/generics examples/generics.c
+
+codegen-structs: reflect clear_gen
+	@mkdir -p gen/structs
+	./build/reflect -o ./gen/structs examples/structs.c
+
+clear_gen:
 	@mkdir -p gen
-	@rm -f gen/*
-	./build/reflect -o ./gen examples/structs.c
+	@rm -rf gen/*
+
 
 reflect:
 	@make -C src
 	@mkdir -p build
 	@mv src/reflect build
-

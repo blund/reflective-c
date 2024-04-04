@@ -163,6 +163,16 @@ void build_dependency_line(Context* ctx, AST_Struct** dependencies, AST_Struct* 
   return;
 }
 
+void write_string(char* text, char* path, char* name) {
+  FILE *fptr;
+  char file_name[32];
+  sprintf(file_name, "%s/%s.c", path, name);
+  fptr = fopen(file_name,"w");
+  fprintf(fptr, "%s\n", text);
+  fclose(fptr);
+}
+
+
 void emit_print_fn(AST_Struct* n, Context* ctx, char* out_dir) {
   string_builder* b = new_builder(256);
 
@@ -184,12 +194,8 @@ void emit_print_fn(AST_Struct* n, Context* ctx, char* out_dir) {
   add_to(b, "void print_%s(struct %s* obj) {\n", n->name, n->name);
   add_to(b, "string_builder* b = new_builder(128);\n");
   emit_struct(b, ctx, n);
-  
-  FILE *fptr;
-  char file_name[32];
-  sprintf(file_name, "%s/%s.c", out_dir, n->name);
-  fptr = fopen(file_name,"w");
-  fprintf(fptr, "%s\n", to_string(b));
-  fclose(fptr);
-}
+
+  write_string(to_string(b), out_dir, n->name);
+ }
+
 

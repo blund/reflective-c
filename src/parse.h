@@ -18,3 +18,5 @@ int parse_token(parse_state* ps);
 int parse_field(parse_state* ps, AST_Children* c);
 int parse_struct(parse_state* ps, AST_Struct* s);
 int parse_oneof(parse_state* ps, char* matches);
+int parse_fun(parse_state* ps, AST_Func* f);
+int parse_until(parse_state* ps, char* word);

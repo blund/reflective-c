@@ -10,8 +10,20 @@ typedef struct StructMap {
   AST_Struct* value;
 } StructMap;
 
+typedef struct Generic {
+  AST_Func* sig;
+  char* code;
+} Generic;
+
+typedef struct GenericsMap {
+  char* key;
+  Generic *value;
+} GenericsMap;
+
+
 typedef struct Context {
   StructMap* struct_map;
+  GenericsMap* generics_map;
 } Context;
 
 #endif

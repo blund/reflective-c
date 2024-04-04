@@ -57,6 +57,7 @@ int parse_word(parse_state* ps) {
  next:
   switch(*(ps->base + ps->index)) {
   case ' ': break;
+  case ',': break;
   case ';': break;
   case '}': break;
   case '{': break;
@@ -85,6 +86,7 @@ int parse_token(parse_state* ps) {
  next:
   switch(*(ps->base + ps->index)) {
   case ' ':
+  case ',':
   case ';':
   case '}':
   case '{':
@@ -182,3 +184,35 @@ int parse_struct(parse_state* ps, AST_Struct* s) {
   return r;
 }
 
+
+int parse_fun(parse_state* ps, AST_Func* f) {
+  parse_word(ps);
+  f->ret = ps->word;
+  parse_word(ps);
+  f->name = ps->word;
+  parse_exact(ps, "(");
+  parse_word(ps);
+  f->p1 = ps->word;
+  parse_token(ps);
+  parse_token(ps);
+  parse_word(ps);
+  parse_exact(ps, ",");
+  parse_word(ps);
+  f->p2 = ps->word;
+  parse_word(ps);
+  parse_exact(ps, ")");
+
+  return 1;
+}
+
+int parse_until(parse_state* ps, char* word) {
+  for(;;) {
+    int result = parse_exact(ps, word);
+    if (result) break;
+    parse_token(ps);
+
+    // There are no more BL_REFLCET_PRINT statements in the given file
+    if (ps->index >= ps->buf_len-1) return 0;
+  }
+  return 1;
+}

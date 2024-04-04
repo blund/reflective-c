@@ -58,6 +58,13 @@ typedef struct AST_Struct {
   char* name;
 } AST_Struct;
 
+typedef struct AST_Func {
+  char* ret;
+  char* name;
+  char* p1;
+  char* p2;
+} AST_Func;
+
 void init_children(AST_Children* c);
 void add_child(AST_Children* c, AST_Node* n);
 #endif
