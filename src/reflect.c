@@ -22,12 +22,13 @@ int main(int argc, char **argv) {
   ctx.struct_map = NULL;
   assert(!hmget(ctx.struct_map, ""));
 
-  if (argc != 2) {
-    fprintf(stderr, "Bad amount of arguments, expected 1 but got %d\n", argc);
-    return 0;
+  char* out_file = "gen";
+  char* file_name = argv[1]; // Assume first arg is file to process if no output is given
+  if (!strcmp(argv[1], "-o")) {
+    out_file = argv[2];
+    file_name = argv[3];
   }
 
-  char* file_name = argv[1];
   char* buffer;
   int buf_len = read_entire_file(file_name, &buffer);
 
@@ -62,7 +63,9 @@ int main(int argc, char **argv) {
 
     shput(ctx.struct_map, s->name, s);
 
-    emit_print_fn(s, &ctx);
+    char* out_dir = "gen";
+
+    emit_print_fn(s, &ctx, out_dir);
   }
  end_parse:
 

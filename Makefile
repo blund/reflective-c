@@ -7,9 +7,8 @@ example: codegen
 codegen: reflect
 	@mkdir -p gen
 	@rm -f gen/*
-	./build/reflect examples/structs.c
+	./build/reflect -o ./gen examples/structs.c
 
-.PHONY: reflect
 reflect:
 	@make -C src
 	@mkdir -p build

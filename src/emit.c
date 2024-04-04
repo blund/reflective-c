@@ -113,7 +113,7 @@ void emit_struct(string_builder* b, Context* ctx, AST_Struct* s) {
 }
 
 void emit_sub_struct(string_builder* b, Context* ctx, AST_Struct* s, refs ref) {
-  add_to(b, "add_to(b, \"%s:  { \");\n", ref.chain[ref.count-1]->name); // I don't know why this is -1
+  add_to(b, "add_to(b, \"%s: { \");\n", ref.chain[ref.count-1]->name); // I don't know why this is -1
 
   int local_ref_count = ref.count;
 
@@ -163,7 +163,7 @@ void build_dependency_line(Context* ctx, AST_Struct** dependencies, AST_Struct* 
   return;
 }
 
-void emit_print_fn(AST_Struct* n, Context* ctx) {
+void emit_print_fn(AST_Struct* n, Context* ctx, char* out_dir) {
   string_builder* b = new_builder(256);
 
   // First, we need to find any dependencies
@@ -187,7 +187,7 @@ void emit_print_fn(AST_Struct* n, Context* ctx) {
   
   FILE *fptr;
   char file_name[32];
-  sprintf(file_name, "gen/%s.c", n->name);
+  sprintf(file_name, "%s/%s.c", out_dir, n->name);
   fptr = fopen(file_name,"w");
   fprintf(fptr, "%s\n", to_string(b));
   fclose(fptr);
