@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
     shput(ctx.struct_map, s->name, s);
 
-    char* out_dir = "gen";
+    char* out_dir = out_file;
 
     emit_print_fn(s, &ctx, out_dir);
   }
