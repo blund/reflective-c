@@ -122,8 +122,6 @@ int main(int argc, char **argv) {
     
     write_string(to_string(file_b), out_dir, g->sig->name);
 
-    printf("SPEC:%s %s\n", param_spec[0]->type, specialized_name);
-    
     string_builder* gen_b = new_builder(32);
     add_to(gen_b, "void %s(", specialized_name);
     for (int i = 0; i < f2->params.index; i++) {
