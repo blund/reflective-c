@@ -11,8 +11,7 @@
 #include <bl/arr.h>
 #include "reflect.h"
 
-#include "../gen/generics/gen.c"
-
+#include "gen/gen.c"
 
 // Define a generic function, using the internals from <bl/arr.>
 REFLECT_GENERIC(
