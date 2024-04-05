@@ -50,6 +50,7 @@ typedef struct AST_VarDecl {
   AST_Node node;
   char* name;
   char* type;
+  int ptr_level;
 } AST_VarDecl;
 
 typedef struct AST_Struct {
@@ -61,8 +62,7 @@ typedef struct AST_Struct {
 typedef struct AST_Func {
   char* ret;
   char* name;
-  char* p1;
-  char* p2;
+  AST_Children params;
 } AST_Func;
 
 void init_children(AST_Children* c);

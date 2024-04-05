@@ -184,22 +184,26 @@ int parse_struct(parse_state* ps, AST_Struct* s) {
   return r;
 }
 
-
 int parse_fun(parse_state* ps, AST_Func* f) {
   parse_word(ps);
   f->ret = ps->word;
   parse_word(ps);
   f->name = ps->word;
   parse_exact(ps, "(");
-  parse_word(ps);
-  f->p1 = ps->word;
-  parse_token(ps);
-  parse_token(ps);
-  parse_word(ps);
-  parse_exact(ps, ",");
-  parse_word(ps);
-  f->p2 = ps->word;
-  parse_word(ps);
+  for (;;) {
+    int len = parse_word(ps);
+    AST_VarDecl* v = malloc(sizeof(AST_VarDecl));
+    v->type = ps->word;
+    add_child(&f->params, (AST_Node*)v);
+    for (;;) {
+      int r = parse_exact(ps, "*");
+      if (!r) break;
+      v->ptr_level++;
+    }
+    parse_word(ps);
+    if(!parse_exact(ps, ",")) break;
+
+  }
   parse_exact(ps, ")");
 
   return 1;

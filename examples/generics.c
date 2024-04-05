@@ -16,14 +16,14 @@
 
 // Define a generic function, using the internals from <bl/arr.>
 BL_GENERIC(
-    void arr_add($T** arr, $T a) {
+    void arr_add($T1 arr, $T2 a) {
     if (*arr == 0) {
-        arr_init((void**)arr, sizeof($T));
+        arr_init((void**)arr, sizeof($T2));
     }
 
     struct arr_info* info = get_info(*arr);
     if (info->index >= info->capacity) {
-        arr_expand((void**)arr, sizeof($T));
+        arr_expand((void**)arr, sizeof($T2));
         info = get_info(*arr); // @NOTE - avoid aliasing if we get a realloc in expand
     }
 

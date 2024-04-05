@@ -46,11 +46,13 @@ int main(int argc, char **argv) {
     .len = 0,
   };
 
+  // Handle defining generics
   parse_until(&ps, "BL_GENERIC(");
   {
     int start = ps.index;
     
     AST_Func* f = malloc(sizeof(AST_Func));
+    init_children(&f->params);
     parse_fun(&ps, f);
     Generic* g = malloc(sizeof(Generic));
     g->sig = f;
@@ -67,37 +69,83 @@ int main(int argc, char **argv) {
   }
 
   ps.index = 0;
-
+  // Handle specializing functions
   parse_until(&ps, "BL_SPECIALIZE(");
   {
-    AST_Func* f = malloc(sizeof(AST_Func));
-    parse_fun(&ps, f);
-    Generic* g = shget(ctx.generics_map, f->name);
+    AST_Func* f2 = malloc(sizeof(AST_Func));
+    init_children(&f2->params);
+    parse_fun(&ps, f2);
+    Generic* g = shget(ctx.generics_map, f2->name);
 
     char* code = g->code;
 
-    char* name = "arr_add_int";
 
-    char* c1 = str_replace(code, g->sig->p1, f->p1);
-    char* c2 = str_replace(c1, g->sig->name, name);
+    // rename gen_param and spec_param
+    AST_VarDecl** param_gen = (AST_VarDecl**)g->sig->params.list;
+    AST_VarDecl** param_spec = (AST_VarDecl**)f2->params.list;
 
-    string_builder* b = new_builder(256);
-    add_to(b, "#include <malloc.h>\n");
-    add_to(b, "#define BL_ARR_IMPLEMENTATION\n");
-    add_to(b, "#include <bl/arr.h>\n");
+    //char* name = "arr_add_int";
+    string_builder* name_b = new_builder(32);
+    add_to(name_b, g->sig->name);
 
-    add_to(b, c2);
+    string_builder* base_type_b = new_builder(32);
+    add_to(base_type_b, param_spec[0]->type);
 
-    write_string(to_string(b), out_dir, g->sig->name);
 
-    reset(b);
-    add_to(b, "void arr_add_int(int** arr, int a);\n");
-    add_to(b, "#define arr_add(a, b) _Generic((a),");
-    add_to(b, "int**: arr_add_int");
-    add_to(b,  ")((a),(b))");
-    write_string(to_string(b), out_dir, "gen");
+    for (int i = 0; i < g->sig->params.index; i++) {
+      string_builder* b = new_builder(8);
+      add_to(b, param_spec[i]->type);
+      add_to(name_b, "_");
+      add_to(name_b, param_spec[i]->type);
+      for (int j = 0; j < param_spec[i]->ptr_level; j++) {
+	if (i == 0) {
+	  add_to(name_b, "p");
+	  add_to(base_type_b, "*");
+	}
+	add_to(b, "*");
+      }
+
+      code = str_replace(code, param_gen[i]->type, to_string(b));
+      free_builder(b);
+      if (!code) break;
+    }
+
+    char* specialized_name = to_string(name_b);
+    code = str_replace(code, g->sig->name, specialized_name);
+    //code = str_replace(code, "$*", "p");
+
+    string_builder* file_b = new_builder(32);
+    add_to(file_b, "#include <malloc.h>\n");
+    add_to(file_b, "#define BL_ARR_IMPLEMENTATION\n");
+    add_to(file_b, "#include <bl/arr.h>\n");
+
+    add_to(file_b, code);
+    
+    write_string(to_string(file_b), out_dir, g->sig->name);
+
+    printf("SPEC:%s %s\n", param_spec[0]->type, specialized_name);
+    
+    string_builder* gen_b = new_builder(32);
+    add_to(gen_b, "void %s(", specialized_name);
+    for (int i = 0; i < f2->params.index; i++) {
+      if (i != 0) add_to(gen_b, ",");
+      string_builder *b = new_builder(4);
+      add_to(b, param_spec[i]->type);
+      for (int j = 0; j < param_spec[i]->ptr_level; j++) {
+	add_to(b, "*");
+      }
+      add_to(gen_b, "%s arg%d", to_string(b), i);
+      free_builder(b);
+    }
+    add_to(gen_b, ");\n");
+
+    add_to(gen_b, "#define arr_add(a, b) _Generic((a),");
+    add_to(gen_b, "%s: %s", to_string(base_type_b), specialized_name);
+    add_to(gen_b,  ")((a),(b))");
+    write_string(to_string(gen_b), out_dir, "gen");
   }
 
+  // Handle printing for structs
   ps.index = 0;
   for (;;) {
     AST_Struct* s = malloc(sizeof(AST_Struct));
