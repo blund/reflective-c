@@ -73,7 +73,7 @@ So far, there are a few limitations:
 
 Expanding the parser to comply with more of C's syntax will allow more use cases. 
 Some interesting ideas to explore further are:
-* Generic programming (lists, hash maps etc...)
+* Generic functions (lists, hash maps etc...)
 * General serialization generators (json, csv)
 * Creating initialization functions for structs
 * Deriving equality checks for structs
