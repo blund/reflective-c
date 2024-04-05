@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
   };
 
   // Handle defining generics
-  parse_until(&ps, "BL_GENERIC(");
+  parse_until(&ps, "REFLECT_GENERIC(");
   {
     int start = ps.index;
     
@@ -58,8 +58,8 @@ int main(int argc, char **argv) {
     g->sig = f;
     g->code = "";
 
-    parse_until(&ps, "BL_GENERIC_END");
-    int len = ps.index - start - strlen("BL_GENERIC_END");
+    parse_until(&ps, "REFLECT_GENERIC_END");
+    int len = ps.index - start - strlen("REFLECT_GENERIC_END");
 
     g->code = malloc(len);
     strncpy(g->code, ps.base + start, len);
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 
   ps.index = 0;
   // Handle specializing functions
-  parse_until(&ps, "BL_SPECIALIZE(");
+  parse_until(&ps, "REFLECT_SPECIALIZE(");
   {
     AST_Func* f2 = malloc(sizeof(AST_Func));
     init_children(&f2->params);
@@ -112,7 +112,6 @@ int main(int argc, char **argv) {
 
     char* specialized_name = to_string(name_b);
     code = str_replace(code, g->sig->name, specialized_name);
-    //code = str_replace(code, "$*", "p");
 
     string_builder* file_b = new_builder(32);
     add_to(file_b, "#include <malloc.h>\n");
@@ -151,7 +150,7 @@ int main(int argc, char **argv) {
     AST_Struct* s = malloc(sizeof(AST_Struct));
     init_children(&s->children);
 
-    if (!parse_until(&ps, "BL_REFLECT_PRINT")) goto end_parse;
+    if (!parse_until(&ps, "REFLECT_DERIVE_PRINT")) goto end_parse;
 
     parse_exact(&ps, "(");
     parse_word(&ps);

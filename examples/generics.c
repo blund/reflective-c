@@ -15,7 +15,7 @@
 
 
 // Define a generic function, using the internals from <bl/arr.>
-BL_GENERIC(
+REFLECT_GENERIC(
     void arr_add($T1 arr, $T2 a) {
     if (*arr == 0) {
         arr_init((void**)arr, sizeof($T2));
@@ -31,22 +31,30 @@ BL_GENERIC(
     info->index += 1;
 
     }
-BL_GENERIC_END
+REFLECT_GENERIC_END
 );
 
-BL_SPECIALIZE(
-    void arr_add(int** arr, int value)
+REFLECT_SPECIALIZE(
+    void arr_add(char*** arr, char* value)
 );
+
+REFLECT_DERIVE_PRINT(vec3);
+struct vec3 {
+  float x;
+  float y;
+  float z;
+};
 
 int main() {
+  char** arr = NULL;
 
-  int* arr = NULL;
-
-  for (int i = 0; i < 4; i++) {
-    arr_add(&arr, i);
-    arr_info* info = get_info(arr);
-    printf("%d\n", info->index);
+  for (int i = 0; i < 3; i++) {
+    arr_add(&arr, "cool");
+    printf("%s\n", arr[i]);
   }
+
+  vec3 v = {1,2,3};
+  print_vec3(&v);
 
   return 0;
 }
