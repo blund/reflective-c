@@ -194,6 +194,7 @@ int parse_fun(parse_state* ps, AST_Func* f) {
     int len = parse_word(ps);
     AST_VarDecl* v = malloc(sizeof(AST_VarDecl));
     v->type = ps->word;
+    v->ptr_level = 0;
     add_child(&f->params, (AST_Node*)v);
     for (;;) {
       int r = parse_exact(ps, "*");

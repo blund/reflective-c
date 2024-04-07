@@ -6,6 +6,6 @@ example: reflect
 	./build/generics
 
 reflect:
-	@make -C src
+	@make -B -C src
 	@mkdir -p build
 	@mv src/reflect build

@@ -2,6 +2,7 @@
 #ifndef BL_ARR_H
 #define BL_ARR_H
 #include <malloc.h>
+#include <string.h>
 
 typedef struct arr_info {
   int elem_size;
@@ -12,6 +13,7 @@ typedef struct arr_info {
 arr_info* get_info(void* arr);
 void arr_init(void** arr, int size);
 void arr_expand(void** arr, int size);
+void _arr__delete(void** arr, int size, int index);
 
 #ifdef BL_ARR_IMPLEMENTATION
 
@@ -38,6 +40,12 @@ void arr_expand(void** arr, int size) {
     *arr = (void*)((char*)ptr + sizeof(arr_info));
   }
 }
+
+void _arr__delete(void** arr, int size, int index) {
+  int length = get_info(arr)->index;
+  memmove((char*)arr, (char*)arr+size, size*(length-index-1));
+}
+
 
 int arr_len(void* arr) {
   return get_info(arr)->index;
