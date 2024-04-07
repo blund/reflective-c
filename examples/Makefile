@@ -1,10 +1,8 @@
 
 
 generics:
-	@rm -rf gen/generics/*
-	@mkdir -p gen/generics
+	@rm -rf gen/*
 	@mkdir -p gen/generics/specialized
-	ls gen/generics
 	../build/reflect -o gen/generics generics.c
 	@mkdir -p ../build
 	gcc -I../include -I../src generics.c gen/generics/*.c -o ../build/generics
